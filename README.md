@@ -61,3 +61,19 @@ http://example.org/pc-sysinstall.conf, it tries to fetch the file from:
 - http://example.org/pc-sysinstall.conf
 
 note that Makefile.after_boot does NOT automatically start installation.
+
+Why grub?
+=========
+
+grubroot provides multiple boot options to choose. you can select older FreeBSD
+RELEASE, memtest, etc. we used to have a single pxeboot environment, creating
+symlinks manually to support multiple hardware. obviously, it's suboptimal and
+we gave up.
+
+Why mfsbsd?
+===========
+
+recently, FreeBSD RELEASE dropped support of mfsroot, forced users to use NFS
+instead. grub does not support NFS-based pxeboot, yet. or you can blame FreeBSD
+kernel not being able to mount NFS root. it expects someone to mount NFS root
+for kernel and give the NFS handle to kernel.
