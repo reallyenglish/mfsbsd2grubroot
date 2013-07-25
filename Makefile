@@ -14,7 +14,7 @@ MFSBSD_FILE?=	${.CURDIR}/../mfsbsd/mfsbsd-${RELEASE}-${ARCH}.tar
 IGNORE+=	variable TAG must be defined
 .endif
 
-all:	check extract_mfsbsd mount_mfsroot create_grubroot ${GRUBROOT_FILE} show_conf
+all:	check extract_mfsbsd mount_mfsroot create_grubroot ${GRUBROOT_FILE}
 
 check:
 .if defined(IGNORE)
