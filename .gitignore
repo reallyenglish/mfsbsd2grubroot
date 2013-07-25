@@ -3,4 +3,4 @@
 /work/
 *.tgz
 templates/boot/loader.conf.*
-!templates/boot/loader.conf.common
+!templates/boot/loader.conf.common.example
