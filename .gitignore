@@ -2,3 +2,5 @@
 /mnt/
 /work/
 *.tgz
+templates/boot/loader.conf.*
+!templates/boot/loader.conf.common
