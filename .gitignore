@@ -2,5 +2,6 @@
 /mnt/
 /work/
 *.tgz
+templates/Makefile.after_boot
 templates/boot/loader.conf.*
 !templates/boot/loader.conf.common.example
