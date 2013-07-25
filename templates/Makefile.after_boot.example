@@ -1,0 +1,68 @@
+DEST_DIR?=	/data
+PC_SYSINSTALL_CONF?=	${DEST_DIR}/%%PC_SYSINSTALL_CONF%%
+PC_SYSINSTALL_CONF_URL?=	%%PC_SYSINSTALL_CONF_URL%%
+AFTER_INSTALL_FILE?=	${DEST_DIR}/%%AFTER_INSTALL_FILE%%
+AFTER_INSTALL_FILE_URL?=	%%AFTER_INSTALL_FILE_URL%%
+DEFAULT_INTERFACE!=	route -n show default | grep interface: | sed -e "s/[[:space:]]//g" | cut -d: -f2
+MAC_ADDRESS!=	ifconfig ${DEFAULT_INTERFACE} | grep -E 'ether (([[:xdigit:]]{2}[-:]){5}[[:xdigit:]]{2})|(([[:xdigit:]]{4}\.){2}[[:xdigit:]]{4})' | cut -d" " -f2
+HOSTNAME!=	hostname -s
+FQDN!=	hostname
+TAG?=	%%TAG%%
+
+all:	fetch install
+
+fetch:	init ${DEST_DIR} ${PC_SYSINSTALL_CONF} ${AFTER_INSTALL_FILE}
+
+init:
+# BUG dialog(1) in FreeBSD 9.1 does not have forth argument (defaults to yes/no)
+	dialog --title "pxeboot install" --yesno "proceed to install FreeBSD?"  6 16
+
+# fetch anything under ${DEST_DIR} because mfsroot is so small
+${DEST_DIR}:
+	mkdir -p ${DEST_DIR}
+	mount -t tmpfs tmpfs ${DEST_DIR}
+
+${PC_SYSINSTALL_CONF}:
+.for S in ${MAC_ADDRESS} ${FQDN} ${HOSTNAME} ${TAG}
+	@echo "trying to fetch from ${PC_SYSINSTALL_CONF_URL}.${S}"
+	-if [ -f ${PC_SYSINSTALL_CONF} ]; then \
+		echo "${PC_SYSINSTALL_CONF} already exists, skipping"; \
+	else \
+		fetch -o ${PC_SYSINSTALL_CONF} ${PC_SYSINSTALL_CONF_URL}.${S}; \
+	fi
+.endfor
+	-if [ ! -f ${PC_SYSINSTALL_CONF} ]; then \
+		echo "trying to fetch default ${PC_SYSINSTALL_CONF_URL}"; \
+		fetch -o ${PC_SYSINSTALL_CONF} ${PC_SYSINSTALL_CONF_URL}; \
+	fi
+	-if [ ! -f ${PC_SYSINSTALL_CONF} ]; then \
+		echo "cannot fetch ${PC_SYSINSTALL_CONF} from URL: ${PC_SYSINSTALL_CONF_URL}" >&2; \
+		exit 1; \
+	fi
+
+${AFTER_INSTALL_FILE}:
+.for S in ${MAC_ADDRESS} ${FQDN} ${HOSTNAME} ${TAG}
+	@echo "trying to fetch from ${AFTER_INSTALL_FILE_URL}.${S}"
+	-if [ -f ${AFTER_INSTALL_FILE} ]; then \
+		echo "${AFTER_INSTALL_FILE} already exists, skipping"; \
+	else \
+		fetch -o ${AFTER_INSTALL_FILE} ${AFTER_INSTALL_FILE_URL}.${S}; \
+	fi
+.endfor
+	-if [ ! -f ${AFTER_INSTALL_FILE} ]; then \
+		echo "trying to fetch default ${AFTER_INSTALL_FILE_URL}"; \
+		fetch -o ${AFTER_INSTALL_FILE} ${AFTER_INSTALL_FILE_URL}; \
+	fi
+	-if [ ! -f ${AFTER_INSTALL_FILE} ]; then \
+		echo "cannot fetch ${AFTER_INSTALL_FILE} from URL: ${AFTER_INSTALL_FILE_URL}" >&2; \
+		exit 1; \
+	fi
+	chmod +x ${AFTER_INSTALL_FILE}
+
+install:	.install_done
+.install_done:
+	/usr/sbin/pc-sysinstall -c ${PC_SYSINSTALL_CONF}
+	touch .install_done
+
+clean:
+	rm -f .*done

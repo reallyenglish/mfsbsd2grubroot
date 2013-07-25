@@ -1,0 +1,4 @@
+PC_SYSINSTALL_CONF_URL?=	http://example.org/pc-sysinstall.conf
+AFTER_INSTALL_FILE_URL?=	http://example.org/after_install.sh
+PC_SYSINSTALL_CONF!=	basename ${PC_SYSINSTALL_CONF_URL}
+AFTER_INSTALL_FILE!=	basename ${AFTER_INSTALL_FILE_URL}
